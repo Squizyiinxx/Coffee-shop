@@ -1,0 +1,20 @@
+:root {
+    --primary: #6C3428
+}
+
+.bg-nav {
+    background-color: var(--primary);
+}
+
+.jumlahInput {
+    width: 30px;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.carouselSize{
+    height: 50px;
+}
