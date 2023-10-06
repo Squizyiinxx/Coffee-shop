@@ -1,28 +1,37 @@
 <script>
 import MenuComponent from "../components/MenuComponent.vue";
 import NavbarComponent from "../components/NavbarComponent.vue";
-import PesananComponent from "../components/PesananComponent.vue";
-import { menuList } from "../data/MenuData";
 import CarouselComponent from "../components/CarouselComponent.vue";
 import Swal from "sweetalert2";
-import FooterComponent from '../components/FooterComponent.vue';
+import FooterComponent from "../components/FooterComponent.vue";
+import { v4 as uuidv4 } from "uuid";
+import { postData } from "../fetchData";
+import { mapActions, mapGetters } from "vuex";
 
 export default {
   components: {
     NavbarComponent,
     MenuComponent,
-    PesananComponent,
     CarouselComponent,
-    FooterComponent
+    FooterComponent,
+  },
+  
+  computed:{
+    dataMenu () {
+      return this.getMenuList();
+    }
   },
   data() {
     return {
       title: "Coffe Shop",
       listPesanan: [],
-      menuList: menuList,
+      id: uuidv4(),
     };
   },
+  
   methods: {
+    ...mapActions(['fetchMenuList','fetchPesananList']),
+    ...mapGetters([ 'getMenuList']),
     addCart(pesanan) {
       const existingIndex = this.listPesanan.findIndex(
         (item) => item.id === pesanan.id
@@ -40,42 +49,47 @@ export default {
           });
       }
     },
-    HandleDelete(payload) {
-      const { id, value, isConfirmed, isDenied, jumlah } = payload;
-      const countDelete = parseInt(value);
-      if (isConfirmed) {
-        this.listPesanan
-          .filter((item) => item.id === id)
-          .map((item) => {
-            if (countDelete < item.jumlah) {
-              item.jumlah -= countDelete;
-              item.subtotal = item.harga * item.jumlah;
-              this.menuList
-                .filter((item) => item.id === id)
-                .map((item) => (item.stok += parseInt(value)));
-            } else if (countDelete === item.jumlah) {
-              this.menuList
-                .filter((item) => item.id === id)
-                .map((item) => (item.stok += parseInt(value)));
-              this.listPesanan = this.listPesanan.filter(
-                (item) => item.id !== id
-              );
-            } else {
-              Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: "Kamu memasukan lebih dari jumlah / Belum mengisi Jumlah",
-              });
-            }
-          });
-      } else if (isDenied) {
-        this.menuList
-          .filter((item) => item.id === id)
-          .map((item) => (item.stok += parseInt(jumlah)));
+    async handleClick(id, pesanan) {
+      const dataPesanan = {
+        idPesanan: id,
+        pesanan: pesanan,
+      };
+      postData(dataPesanan);
+    },
 
-        this.listPesanan = this.listPesanan.filter((item) => item.id !== id);
+    handlePesanan() {
+      if (this.listPesanan.length !== 0) {
+        this.fetchPesananList();
+        let timerInterval;
+        Swal.fire({
+          title: "Proses!",
+          html: "Tunggu sedang diproses!.",
+          timer: 2000,
+          timerProgressBar: true,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+          willClose: () => {
+            clearInterval(timerInterval);
+          },
+        }).then((result) => {
+          if (result.dismiss === Swal.DismissReason.timer) {
+            this.$router.push({
+              path: "/pesanan",
+              query: {
+                item: this.id,
+              },
+            });
+          }
+        });
+      } else {
+        Swal.fire("..Oopss", "Sepertinya Anda Belum Memesan Apapun!", "error");
       }
     },
+  
+  },
+   created(){
+    this.fetchMenuList();
   },
 };
 </script>
@@ -85,8 +99,17 @@ export default {
     <h1 class="my-5 text-center fw-regular">Selamat Datang di {{ title }}</h1>
     <CarouselComponent />
     <p class="mt-5">Silahkan pilih menu dibawah ini</p>
-    <MenuComponent @emit-add="addCart" :listMenu="menuList" />
-    <PesananComponent :dataPesanan="listPesanan" @emit-delete="HandleDelete" />
-    <FooterComponent/>
+    <MenuComponent @emit-add="addCart" :listMenu="dataMenu.data" />
+    <button
+      type="button"
+      class="btn btn-success mt-5"
+      @click="
+        handleClick(id, listPesanan);
+        handlePesanan();
+      "
+    >
+      To Cart
+    </button>
+    <FooterComponent />
   </div>
 </template>

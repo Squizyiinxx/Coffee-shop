@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Laravel</title>
+        <title>Coffe shop</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -18,7 +18,7 @@
     </head>
     <body class="antialiased">
         <div id="app">
-            <Home/>
+            <router-view></router-view>
         </div>
         <script src="{{mix('js/app.js')}}" type="text/javascript"></script>
     </body>

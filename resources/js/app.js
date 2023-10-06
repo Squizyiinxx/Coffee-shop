@@ -8,6 +8,9 @@ import './bootstrap';
 import { createApp } from 'vue';
 import Home from './pages/Home.vue';
 import Navbar from './components/NavbarComponent.vue';
+import { createRouter,createWebHistory } from 'vue-router';
+import { routes } from './routes';
+import store from './store';
 
 /**
  * Next, we will create a fresh Vue application instance. You may then begin
@@ -16,8 +19,11 @@ import Navbar from './components/NavbarComponent.vue';
  */
 
 const app = createApp({});
+const router = createRouter({
+    history : createWebHistory(),
+    routes
+})
 
-app.component('Home', Home);
 app.component('Navbar', Navbar);
 
 import "bootstrap/dist/css/bootstrap.css";
@@ -38,5 +44,6 @@ import "bootstrap/dist/css/bootstrap.css";
  * an "id" attribute of "app". This element is included with the "auth"
  * scaffolding. Otherwise, you will need to add an element yourself.
  */
-
+app.use(router);
+app.use(store);
 app.mount('#app');

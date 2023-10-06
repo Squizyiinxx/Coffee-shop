@@ -1,19 +1,57 @@
 <script>
 import Swal from "sweetalert2";
-import TotalComponent from "./TotalComponent.vue";
+import TotalComponent from "../components/TotalComponent.vue";
+import { deletePesanan, putData, putMenu } from '../fetchData';
+import { mapActions,mapGetters } from 'vuex';
 export default {
   components: { TotalComponent },
   emits: ["emit-delete"],
-  props: {
-    dataPesanan: {
-      type: Array,
-      default() {
-        return [];
-      },
-    },
+  computed:{
+    read(){
+      return this.getListPesanan();
+    }
+  
   },
   methods: {
-    deleteItem(id, jumlah) {
+    ...mapActions(["fetchPesananList"]),
+    ...mapGetters(["getListPesanan"]),
+    loadingTime(){
+      let timerInterval;
+        Swal.fire({
+          title: "Proses!",
+          html: "Tunggu sedang diproses!.",
+          timer: 2000,
+          timerProgressBar: true,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+          willClose: () => {
+            clearInterval(timerInterval);
+          },
+        }).then((result) => {
+          if (result.dismiss === Swal.DismissReason.timer) {
+           this.fetchPesananList();
+          }
+        });
+    },
+      HandleDelete(payload) {
+      const { id, value, isConfirmed, isDenied, jumlah,subtotal,harga } = payload;
+      const countDelete = parseInt(value);
+      const updateSubtotal = (harga * (jumlah- countDelete));
+      if (isConfirmed) {
+        if(jumlah > countDelete){
+          putData(id,{jumlah:jumlah - countDelete,subtotal:updateSubtotal});
+          this.loadingTime();
+          putMenu(id,jumlah -countDelete);
+        }else{
+           Swal.fire("..Oopss", "Sisakan minimal 1", "error");
+        }
+      } else if (isDenied) {
+        deletePesanan(id);
+        this.loadingTime();
+      }
+    },
+    deleteItem(id, jumlah,subtotal, harga) {
       Swal.fire({
         title: "Yakin ingin menghapus?!",
         input: "number",
@@ -36,17 +74,23 @@ export default {
           value: result.value,
           isConfirmed: result.isConfirmed,
           isDenied: result.isDenied,
-          jumlah: jumlah,
+          jumlah,
+          subtotal,
+          harga
         };
-        console.log(jumlah);
-        this.$emit("emit-delete", payload);
+          this.HandleDelete(payload);
       });
     },
+    
   },
+  created() {
+      this.fetchPesananList();
+  }
+
 };
 </script>
 <template>
-  <div class="card shadow mt-5 mb-3">
+  <div class="card shadow m-5">
     <div class="p-3 border-bottom rounded-top text-white fw-bold fs-5 bg-nav">
       Cart
     </div>
@@ -62,7 +106,7 @@ export default {
           <div class="col">Subtotal</div>
           <div class="col">Action</div>
         </div>
-        <div class="row" v-for="(item, i) in dataPesanan" :key="i">
+        <div class="row" v-for="(item, i) in read?.pesanan" :key="i">
           <div class="col md-3 lg-5">
             <p>{{ item.product }}</p>
           </div>
@@ -84,13 +128,13 @@ export default {
                 currency: "IDR",
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0,
-              }).format(item.harga * item.jumlah)
+              }).format(item?.subtotal)
             }}
           </div>
           <div class="col mb-2">
             <button
               class="btn btn-danger"
-              @click="deleteItem(item.id, item.jumlah)"
+              @click="deleteItem(item?.id, item?.jumlah, item?.subtotal, item?.harga)"
             >
               Delete
             </button>
@@ -98,7 +142,7 @@ export default {
           <hr />
         </div>
       </div>
-      <total-component :listPesanan="dataPesanan" />
+      <total-component :listPesanan="read?.pesanan" />
     </div>
   </div>
 </template>

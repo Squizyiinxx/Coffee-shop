@@ -15,6 +15,7 @@ export default {
     };
   },
   methods: {
+
     noStokAlert() {
       Swal.fire({
         icon: "error",

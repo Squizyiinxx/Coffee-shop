@@ -60,9 +60,7 @@ export default {
       );
     },
   },
-  mounted() {
-    console.log(this.listPesanan);
-  },
+
 };
 </script>
 <template>

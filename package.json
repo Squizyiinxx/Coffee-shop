@@ -21,6 +21,9 @@
     },
     "dependencies": {
         "boostrap": "^2.0.0",
-        "sweetalert2": "^11.7.27"
+        "sweetalert2": "^11.7.27",
+        "uuidv4": "^6.2.13",
+        "vue-router": "^4.2.5",
+        "vuex": "^4.1.0"
     }
 }
